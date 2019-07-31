@@ -289,7 +289,7 @@ function convertClusterRoleBinding() {
 }
 
 function convertMeshPolicy() {
-  convertClusterToNamespaced "$1" "MeshPolicy" "Policy" "$2"
+  sed -i -e 's/name: .*/name: "{{ .Release.Namespace }}"/' "$1"
 }
 
 function patchMultiTenant() {
@@ -319,9 +319,7 @@ function patchMultiTenant() {
 \2    - "{{ .Release.Namespace }}"\
 \1|' ${HELM_DIR}/istio/charts/galley/templates/validatingwebhookconfiguration.yaml.tpl
   sed -i -e '/--validation-webhook-config-file/ {
-    s/^\(\( *\)- --validation-webhook-config-file\)/\2- --deployment-namespace\
-\2- \{\{ .Release.Namespace \}\}\
-\2- --webhook-name\
+    s/^\(\( *\)- --validation-webhook-config-file\)/\2- --webhook-name\
 \2- istio-galley-\{\{ .Release.Namespace \}\}\
 \2- --memberRollName=default\
 \1/
@@ -374,8 +372,8 @@ function patchMultiTenant() {
   }' ${HELM_DIR}/istio/charts/security/templates/clusterrole.yaml
   convertClusterRoleBinding ${HELM_DIR}/istio/charts/security/templates/clusterrolebinding.yaml
   # revisit in TP12
-  #convertMeshPolicy ${HELM_DIR}/istio/charts/security/templates/enable-mesh-mtls.yaml
-  #convertMeshPolicy ${HELM_DIR}/istio/charts/security/templates/enable-mesh-permissive.yaml
+  convertMeshPolicy ${HELM_DIR}/istio/charts/security/templates/enable-mesh-mtls.yaml
+  convertMeshPolicy ${HELM_DIR}/istio/charts/security/templates/enable-mesh-permissive.yaml
   sed -i -e 's/^\(\( *\){.*if .Values.global.trustDomain.*$\)/\
 \            - --member-roll-name=default\
 \1/' ${HELM_DIR}/istio/charts/security/templates/deployment.yaml

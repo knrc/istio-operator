@@ -22,4 +22,5 @@ rules:
 # revisit in TP12
 - apiGroups: ["authentication.istio.io"]
   resources: ["meshpolicies"]
+  resourceNames: [ "{{ .Release.Namespace }}" ]
   verbs: ["*"]
